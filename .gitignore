@@ -6,6 +6,16 @@ __pycache__/
 # C extensions
 *.so
 
+# Testing Data 
+car.jpg
+plane.jpg
+horse.jpg
+deer.jpg
+
+# Models
+Image_classifier.keras
+
+
 # Distribution / packaging
 .Python
 build/
@@ -148,7 +158,6 @@ activemq-data/
 *.sage.py
 
 # Environments
-.env
 .envrc
 .venv
 env/
@@ -216,3 +225,5 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+config.bat
+node_modules

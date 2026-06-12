@@ -1,4 +1,5 @@
 #Importing Libraries
+import utils.session
 import tensorflow as tf
 import numpy as np
 import pandas as pd

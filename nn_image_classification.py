@@ -2,7 +2,7 @@
 import tensorflow as tf
 import numpy as np
 import pandas as pd
-import cv2
+import cv2 as cv
 import matplotlib.pyplot as plt
 from keras import datasets, layers, models
 
@@ -18,41 +18,6 @@ training_images, testing_images = training_images.astype('float32') / 255.0, tes
 class_name = ['Plane', 'Car', 'Bird', 'Cat', 'Deer', 'Dog', 'Frog', 'Horse', 'Ship', 'Truck']
 
 
-
-# Display the first 16 training images in a 4x4 grid.
-# Note:
-#   training_labels contains class IDs, NOT sequential numbers.
-#   Example first few labels may be [6, 9, 9, 4, 1, ...]
-#   because the dataset is shuffled/mixed, not sorted by class.
-
-# subplot works: {plt.subplot(4,4,i+1)}
-# -4 rows
-# -4 columns
-# -position = i + 1
-
-# 1   2   3   4
-# 5   6   7   8
-# 9  10  11  12
-# 13 14  15  16
-
-for i in range(16):
-    plt.subplot(4,4,i+1)
-    plt.xticks([])
-    plt.yticks([])
-    plt.imshow(training_images[i], cmap=plt.cm.binary)
-    plt.xlabel(class_name[training_labels[i][0]])
-
-
-plt.show()
-
-# training_labels[0]      -> [6]
-# training_labels[0][0]   -> 6
-# class_name[6]           -> "Frog"
-
-# Dataset labels are mixed (6,9,9,4,1,...) because the dataset
-# is not sorted by class. Mixed data helps neural networks learn better.
-
-
 # Building and Training the model
 # Reducing the training,testing loading images for neural network by which sys works properly
 training_images = training_images[:20000]
@@ -60,168 +25,19 @@ training_labels = training_labels[:20000]
 testing_images = testing_images[:4000]
 testing_labels = testing_labels[:4000]
 
+# Loading the Image_classifier.keras trained model
+model = models.load_model('Image_classifier.keras')
 
-# CNN Pipeline:-
+img = cv.imread('car.jpg')                                 # Reading the testing image
+img = cv.cvtColor(img, cv.COLOR_BGR2RGB)                    # Enabling/Converting the BGR -> RGB colour
 
-# Create an empty CNN model where layers are added sequentially.
-# model = models.Sequential()
-# Think of it like:
-# Input
-#  ↓
-# Layer 1
-#  ↓
-# Layer 2
-#  ↓
-# Layer 3
-#  ↓
-# Output
-model = models.Sequential()
-model.add(layers.Conv2D(32, (3,3), activation='relu',input_shape = (32,32,3)))      # First convolution layer:- Input image: 32x32x3, Learn 32 feature maps using 3x3 filter & ReLU keeps positive values and sets negatives to 0.
-model.add(layers.MaxPooling2D((2,2)))
-model.add(layers.Conv2D(64, (3,3), activation='relu'))                              # Second Layer
-model.add(layers.MaxPooling2D((2,2)))                           # Downsample feature maps using 2x2 pooling. Keeps strongest features while reducing image size.
-model.add(layers.Conv2D(64, (3,3), activation='relu'))                              # Third Layer
-model.add(layers.Flatten())                                     # Shape: (4,4,64) → (1024,) or Before: 4 × 4 × 64 → Total values: 4 × 4 × 64 = 1024
-model.add(layers.Dense(64,activation='relu'))                   # Every neuron connects to every neuron in previous layer → Fully connected layer with 64 neurons for feature learning.
-model.add(layers.Dense(10,activation='softmax'))                # Output layer: 10 neurons (one per CIFAR-10 class) & Softmax converts outputs into class probabilities.
-# input_shape=(32,32,3) → CIFAR-10 images are: Height = 32, Width  = 32 & Channels = 3 (RGB); So: (32,32,3) → means: 32 × 32 pixels & 3 color channels
-
-'''
-Why Dense → 10? with softmax activation
-Because CIFAR-10 has:
-Plane
-Car
-Bird
-Cat
-Deer
-Dog
-Frog
-Horse
-Ship
-Truck
-(10 classes)
-
-For Dense: Softmax:-
-Converts outputs into probabilities.
-Example:
-
-Plane  = 0.01
-Car    = 0.03
-Bird   = 0.02
-Cat    = 0.01
-Deer   = 0.05
-Dog    = 0.02
-Frog   = 0.04
-Horse  = 0.02
-Ship   = 0.10
-Truck  = 0.70
-
-Total: 1.00
-Prediction: Truck (70%)
-'''
+plt.imshow(img, cmap=plt.cm.binary)                         # cmap means: Color Map -> It is mainly used for grayscale images. Black pixels: 0 → Black & White pixels: 255 → White
 
 
-'''
-Complete Flow:
+predict = model.predict(np.array([img]) / 255)
+index = np.argmax(predict)                                  # Find Largest Probability {np.argmax(predict)}, means: Return the index of the maximum value.
 
-32x32x3 Image
-      ↓
-Conv2D(32)
-      ↓
-30x30x32
-      ↓
-MaxPool
-      ↓
-15x15x32
-      ↓
-Conv2D(64)
-      ↓
-13x13x64
-      ↓
-MaxPool
-      ↓
-6x6x64
-      ↓
-Conv2D(64)
-      ↓
-4x4x64
-      ↓
-Flatten
-      ↓
-1024
-      ↓
-Dense(64)
-      ↓
-Dense(10)
-      ↓
-Class Probabilities
+print(f"Prediction is {class_name[index]}")
 
 
-This is the standard CNN pipeline:
-
-Image
- ↓
-Feature Extraction (Conv + Pool)
- ↓
-Flatten
- ↓
-Classification (Dense Layers)
- ↓
-Predicted Class
-'''
-
-
-
-
-
-
-
-model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-
-# compile tells how the model should learn
-
-'''
-Model Architecture ✓
-        ↓
-Compile
-        ↓
-How should the model learn?
-How should errors be calculated?
-How should performance be measured?
-
-
-optimizer = 'adam'
-The optimizer decides: "How should the model update its weights to reduce errors?"
-
-During training:
-
-Prediction → Compare with Actual Answer
-           ↓
-        Calculate Error
-           ↓
-      Update Weights
-           ↓
-      Make Better Prediction
-
-The optimizer controls the Update Weights step.
-
-
-Example: Imagine you're trying to reach a destination in a foggy city.
-Adam helps you decide:-
-Which direction?
-How big a step?
-Should I turn left/right? →  to reach the destination faster.
-
-
-Loss function for multi-class classification, "Sparse" means labels are integers (0-9) instead of one-hot vectors.
-Lower loss = better predictions;  The loss function measures: "How wrong is the model?"
-'''
-
-
-model.fit(training_images, training_labels, epochs=10, validation_data=(testing_images, testing_labels))
-
-loss, accuracy = model.evaluate(training_images, training_labels)
-
-print(f"Loss: {loss}\nAccuracy: {accuracy}")
-
-model.save('Image_classifier.keras')
+plt.show()

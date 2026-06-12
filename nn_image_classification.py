@@ -169,3 +169,58 @@ Classification (Dense Layers)
  ↓
 Predicted Class
 '''
+
+
+
+
+
+
+
+model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+# compile tells how the model should learn
+
+'''
+Model Architecture ✓
+        ↓
+Compile
+        ↓
+How should the model learn?
+How should errors be calculated?
+How should performance be measured?
+
+
+optimizer = 'adam'
+The optimizer decides: "How should the model update its weights to reduce errors?"
+
+During training:
+
+Prediction → Compare with Actual Answer
+           ↓
+        Calculate Error
+           ↓
+      Update Weights
+           ↓
+      Make Better Prediction
+
+The optimizer controls the Update Weights step.
+
+
+Example: Imagine you're trying to reach a destination in a foggy city.
+Adam helps you decide:-
+Which direction?
+How big a step?
+Should I turn left/right? →  to reach the destination faster.
+
+
+Loss function for multi-class classification, "Sparse" means labels are integers (0-9) instead of one-hot vectors.
+Lower loss = better predictions;  The loss function measures: "How wrong is the model?"
+'''
+
+
+model.fit(training_images, training_labels, epochs=10, validation_data=(testing_images, testing_labels))
+
+loss, accuracy = model.evaluate(training_images, training_labels)
+
+print(f"Loss: {loss}\nAccuracy: {accuracy}")
+

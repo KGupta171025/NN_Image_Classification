@@ -224,3 +224,4 @@ loss, accuracy = model.evaluate(training_images, training_labels)
 
 print(f"Loss: {loss}\nAccuracy: {accuracy}")
 
+model.save('Image_classifier.keras')
